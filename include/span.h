@@ -1577,6 +1577,16 @@ template <typename Cont>
 constexpr auto as_span(Cont &&arr) -> std::enable_if_t<!details::is_span<std::decay_t<Cont>>::value,
     span<std::remove_reference_t<decltype(arr.size(), *arr.data())>, dynamic_range>> = delete;
 
+
+template <typename Cont>
+constexpr auto as_temp_span(Cont &&arr)->std::enable_if_t<!details::is_span<std::decay_t<Cont>>::value,
+    span<std::add_const_t<std::remove_reference_t<decltype(arr.size(), *arr.data())>>, dynamic_range >>
+{
+    Expects(arr.size() < PTRDIFF_MAX);
+    return{arr.data(), static_cast<std::ptrdiff_t>(arr.size())};
+}
+
+
 // from basic_string which doesn't have nonconst .data() member like other contiguous containers
 template <typename CharT, typename Traits, typename Allocator>
 constexpr auto as_span(std::basic_string<CharT, Traits, Allocator> &str) -> span<CharT, dynamic_range>
